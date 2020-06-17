@@ -42,12 +42,13 @@ def rand_prop(features, training):
     n = features.shape[0]
     drop_rate = args.dropnode_rate
     if training:
-        mask = tf.ones((n,1))
-        droped_mask = tf.nn.dropout(mask,drop_rate)
-        droped_mask = tf.clip_by_value(droped_mask,clip_value_min=0, clip_value_max=1)
+        mask = tf.random.uniform((n,1),minval=0, maxval=1, dtype=tf.dtypes.float32)
+        mask = tf.math.sign(mask-drop_rate)+1
+        droped_mask = tf.clip_by_value(mask,clip_value_min=0, clip_value_max=1)
         features = tf.multiply(features ,droped_mask)
+
     else:
-        features = features * (1. - drop_rate)
+        features = features * drop_rate
     features = propagate(features, A_tensor, args.order)
     return features
 
@@ -89,22 +90,21 @@ def train(epoch):
             loss_train += tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_true,logits=y_pred))
         loss_train = loss_train/K
 
-        log_softmax_output_list = [tf.nn.log_softmax(out) for out in output_list]
+        log_softmax_output_list = [tf.nn.log_softmax(out,-1) for out in output_list]
         loss_consis = consis_loss(log_softmax_output_list)
 
         l2_loss = args.weight_decay*tf.add_n([tf.nn.l2_loss(v) for v in model.trainable_variables])
         loss_train = loss_train + loss_consis+l2_loss
         grads = tape.gradient(loss_train, model.trainable_variables)
-        cliped_grads = [tf.clip_by_value(t, clip_value_min, clip_value_max) for t in grads]
-    optimizer.apply_gradients(zip(cliped_grads, model.trainable_variables))
-
+        # cliped_grads = [tf.clip_by_value(t, clip_value_min, clip_value_max) for t in grads]
+    # optimizer.apply_gradients(zip(cliped_grads, model.trainable_variables))
+    optimizer.apply_gradients(zip(grads, model.trainable_variables))
     y_pred = tf.gather(output_list[0],idx_train).numpy()
     acc_train = accuracy(y_pred=y_pred,y_true=labels[idx_train])
 
     if not args.fastmode:
         X = rand_prop(X, training=False)
         output = model(X,training=False)
-        # output_log_softmax = tf.nn.log_softmax(output, dim=-1)
 
     loss_val = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=onehot_labels[idx_val],logits=tf.gather(output,idx_val)))
     acc_val = accuracy(tf.gather(output,idx_val).numpy(),labels[idx_val])
@@ -172,7 +172,7 @@ def test():
     output = model(X,training=False)
 
     loss_test = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=onehot_labels[idx_test],logits=tf.gather(output, idx_test)))
-    output = tf.nn.log_softmax(output)
+    output = tf.nn.log_softmax(output,-1)
     acc_test = accuracy(tf.gather(output,idx_test).numpy(),labels[idx_test])
 
     print("Test set results:",
