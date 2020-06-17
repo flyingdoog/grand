@@ -1,11 +1,6 @@
 # grand
 This is an unofficial implentation of "Graph Random Neural Network"
 
-## Requirements
-* Python 3.7.3
-* Please install other pakeages by 
-``` pip install -r requirements.txt```
-
 ## Usage Example
 * Running one trial on Cora:
 ```sh run_cora.sh ```
