@@ -1,5 +1,5 @@
 # grand
-This is the code of paper: Graph Random Neural Network
+This is an unofficial implentation of "Graph Random Neural Network"
 
 ## Requirements
 * Python 3.7.3
@@ -15,5 +15,5 @@ This is the code of paper: Graph Random Neural Network
 ```python result_100run.py cora ```
 
 ## Running Environment 
-
-The experimental results reported in paper are conducted on a single NVIDIA GeForce RTX 2080 Ti with CUDA 10.0, which might be slightly inconsistent with the results induced by other platforms.
+I have tested the code with both Tensorflow 1.15 and Tensorflow 2.20.
+The accuracy result of Cora is 0.846.
