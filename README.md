@@ -12,3 +12,4 @@ This is an unofficial implentation of "Graph Random Neural Network"
 ## Running Environment 
 I have tested the code with both Tensorflow 1.15 and Tensorflow 2.20.
 The accuracy result of Cora is 0.846.
+The results on Citeseer and Pubmed is not good yet.
